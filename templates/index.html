@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chain Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        #chat-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px; /* Increase the width */
+            height: 700px; /* Increase the height */
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px; /* Increase padding */
+            border-radius: 6px 6px 0 0;
+            font-size: 20px; /* Increase font size */
+            text-align: center;
+        }
+        #chat-box {
+            flex: 1;
+            padding: 15px; /* Increase padding */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 12px; /* Increase padding */
+            border-radius: 15px;
+            line-height: 1.4;
+            font-size: 16px; /* Increase font size */
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-start;
+            border-radius: 15px 15px 15px 0;
+        }
+        .bot-message {
+            background-color: #f1f1f1;
+            color: black;
+            align-self: flex-end;
+            border-radius: 15px 15px 0 15px;
+        }
+        #question-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #question {
+            flex: 1;
+            padding: 12px; /* Increase padding */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px; /* Increase font size */
+        }
+        #ask-btn {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 50px; /* Increase button size */
+            height: 50px; /* Increase button size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px; /* Increase font size */
+        }
+        #loading {
+            display: none;
+            font-style: italic;
+            color: #555;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 16px; /* Increase font size */
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-header">Chatbot</div>
+        <div id="chat-box"></div>
+        <div id="question-box">
+            <input type="text" id="question" placeholder="Type your question here...">
+            <button id="ask-btn">↑</button>
+        </div>
+        <div id="loading">Loading...</div>
+    </div>
+
+    <script>
+        document.getElementById('ask-btn').addEventListener('click', function() {
+            const question = document.getElementById('question').value;
+            const chatBox = document.getElementById('chat-box');
+            const loadingDiv = document.getElementById('loading');
+
+            if (question.trim() === '') {
+                alert('Please enter a question.');
+                return;
+            }
+
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.classList.add('message', 'user-message');
+            userMessageDiv.textContent = question;
+            chatBox.appendChild(userMessageDiv);
+
+            loadingDiv.style.display = 'block';
+
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question: question })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.style.display = 'none';
+
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.classList.add('message', 'bot-message');
+                botMessageDiv.textContent = data.answer;
+                chatBox.appendChild(botMessageDiv);
+
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
+                document.getElementById('question').value = '';
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
